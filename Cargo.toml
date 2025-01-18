@@ -6,8 +6,5 @@ edition = "2021"
 [dependencies]
 directories = "6.0.0"
 iced = { version = "0.13.1", features=["highlighter", "tokio", "debug"] }
-lazy_static = "1.5.0"
 rfd = "0.15.2"
-serde = { version ="1.0.217", features = ["derive"] }
-serde_json = "1.0.135"
 tokio = { version = "1.43.0", features = ["fs"] }

@@ -10,6 +10,7 @@ use std::ffi;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use directories::UserDirs;
 
 #[derive(Debug, Clone)]
 pub enum Error {
@@ -41,6 +42,17 @@ pub enum Message {
 
 impl Editor {
     pub fn new() -> (Self, Task<Message>) {
+        let user_dirs = UserDirs::new().expect("Failed to get user directories");
+        let document_dir_pathbuf = user_dirs
+            .document_dir()
+            .map(|dir| dir.to_owned().join("sbt_notes.txt"))
+            .expect("Failed to get document directory");
+
+        // If the file doesn't exist, create it
+        if !document_dir_pathbuf.exists() {
+            let _ = std::fs::File::create(&document_dir_pathbuf);
+        }
+
         (
             Self {
                 file: None,
@@ -52,10 +64,7 @@ impl Editor {
             },
             Task::batch([
                 Task::perform(
-                    load_file(format!(
-                        "{}/src/main.rs",
-                        env!("CARGO_MANIFEST_DIR")
-                    )),
+                    load_file(document_dir_pathbuf),
                     Message::FileOpened,
                 ),
                 widget::focus_next(),
