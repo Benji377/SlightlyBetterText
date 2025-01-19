@@ -57,7 +57,7 @@ impl Settings {
         let file_path = self.file_path.as_ref().ok_or("No file path set".to_owned()).unwrap();
         
         if !file_path.exists() {
-            fs::create_dir_all(&file_path).map_err(|error| format!("Failed to create config dir: {error}")).unwrap();
+            fs::create_dir_all(file_path).map_err(|error| format!("Failed to create config dir: {error}")).unwrap();
         }
 
         let file = File::create(file_path.join(SETTINGS_FILE_NAME)).map_err(|error| format!("Failed to create settings file: {error}")).unwrap();
