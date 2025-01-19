@@ -4,7 +4,6 @@
 > High priority
 
 Make the app launch in the background and be always ready to input text.
-Further, add the shortcut mechanism to open/close the editor
 
 Help:
 - https://github.com/iced-rs/iced/issues/718

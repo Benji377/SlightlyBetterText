@@ -1,16 +1,22 @@
-use iced::highlighter;
+use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
+use iced::futures::SinkExt;
+use iced::futures::Stream;
+use iced::stream;
+use iced::{highlighter, Subscription};
 use iced::keyboard;
+use iced::window;
 use iced::widget::{
     self, button, column, container, horizontal_space, pick_list, row, text,
     text_editor, toggler, tooltip,
 };
 use iced::{Center, Element, Fill, Font, Task, Theme};
-
 use std::ffi;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use directories::UserDirs;
+
+use crate:: START_KEY;
 
 #[derive(Debug, Clone)]
 pub enum Error {
@@ -20,12 +26,15 @@ pub enum Error {
 }
 
 pub struct Editor {
+    window_id: Option<iced::window::Id>,
     file: Option<PathBuf>,
     content: text_editor::Content,
     theme: highlighter::Theme,
     word_wrap: bool,
     is_loading: bool,
     is_dirty: bool,
+    is_visible: bool,
+    _key_manager: GlobalHotKeyManager,
 }
 
 #[derive(Debug, Clone)]
@@ -38,6 +47,8 @@ pub enum Message {
     FileOpened(Result<(PathBuf, Arc<String>), Error>),
     SaveFile,
     FileSaved(Result<PathBuf, Error>),
+    HotkeyPressed(GlobalHotKeyEvent),
+    InitWindow(Option<iced::window::Id>),
 }
 
 impl Editor {
@@ -53,21 +64,30 @@ impl Editor {
             let _ = std::fs::File::create(&document_dir_pathbuf);
         }
 
+        // Registers hotkey for the app
+        let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
+        hotkey_manager.register(START_KEY).expect("Failed to register hotkey");
+
         (
             Self {
+                window_id: None,
                 file: None,
                 content: text_editor::Content::new(),
                 theme: highlighter::Theme::SolarizedDark,
                 word_wrap: true,
                 is_loading: true,
                 is_dirty: false,
+                is_visible: true,
+                _key_manager: hotkey_manager,
             },
             Task::batch([
                 Task::perform(
                     load_file(document_dir_pathbuf),
                     Message::FileOpened,
                 ),
+                iced::window::get_latest().map(|id| Message::InitWindow(id)),
                 widget::focus_next(),
+
             ]),
         )
     }
@@ -139,6 +159,28 @@ impl Editor {
                     self.is_dirty = false;
                 }
 
+                Task::none()
+            }
+            Message::HotkeyPressed(hotkey) => {
+                if hotkey.state == HotKeyState::Released {
+                    let window_id = self.window_id.expect("Window ID not set");
+                    if hotkey.id == START_KEY.id {
+                        self.is_visible = !self.is_visible;
+                        if self.is_visible {
+                            log::info!("Showing window");
+                            return iced::window::change_mode(window_id, window::Mode::Windowed);
+                        } else {
+                            log::info!("Hiding window");
+                            return iced::window::change_mode(window_id, window::Mode::Hidden);
+                        }
+                    } else {
+                        log::info!("Unknown hotkey event: {:?}", hotkey);
+                    }
+                }
+                Task::none()
+            }
+            Message::InitWindow(id) => {
+                self.window_id = id;
                 Task::none()
             }
         }
@@ -237,6 +279,10 @@ impl Editor {
             Theme::Light
         }
     }
+
+    pub fn subscription(&self) -> iced::Subscription<Message> {
+        Subscription::run(hotkey_worker)
+    }
 }
 
 async fn open_file() -> Result<(PathBuf, Arc<String>), Error> {
@@ -321,4 +367,21 @@ fn icon<'a, Message>(codepoint: char) -> Element<'a, Message> {
     const ICON_FONT: Font = Font::with_name("editor-icons");
 
     text(codepoint).font(ICON_FONT).into()
+}
+
+fn hotkey_worker() -> impl Stream<Item = Message> {
+    stream::channel(100, |mut sender| async move {
+        // Create channel
+        let receiver = GlobalHotKeyEvent::receiver();
+        // poll for global hotkey events every 50ms
+        loop {
+            if let Ok(event) = receiver.try_recv() {
+                sender
+                    .send(Message::HotkeyPressed(event))
+                    .await
+                    .unwrap();
+                }
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+    })
 }
