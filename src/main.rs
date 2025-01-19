@@ -6,7 +6,9 @@ use editor::editor::Editor;
 mod editor;
 
 static APP_NAME: &str = "SlightlyBetterText";
-static START_KEY: HotKey = HotKey { id: 19012025, key: Code::Space, mods: Modifiers::META};
+use std::sync::LazyLock;
+
+static START_KEY: LazyLock<HotKey> = LazyLock::new(|| HotKey { id: 19012025, key: Code::Space, mods: Modifiers::CONTROL | Modifiers::ALT });
 
 #[cfg(debug_assertions)]
 static LOGGING_FILTER: LevelFilter = LevelFilter::Debug;
@@ -19,6 +21,7 @@ pub fn main() -> iced::Result {
     let log_config = simplelog::ConfigBuilder::new()
         .add_filter_ignore_str("wgpu_core")
         .add_filter_ignore_str("cosmic_text")
+        .add_filter_ignore_str("naga")
         .build();
 
     TermLogger::init(

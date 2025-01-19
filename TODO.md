@@ -1,14 +1,5 @@
 # TODO
 
-## Background Task
-> High priority
-
-Make the app launch in the background and be always ready to input text.
-
-Help:
-- https://github.com/iced-rs/iced/issues/718
-- https://discourse.iced.rs/t/how-to-map-control-s-to-a-keyboard-event/781
-
 ## Settings
 > Medium-low priority
 

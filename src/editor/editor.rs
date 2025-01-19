@@ -66,7 +66,7 @@ impl Editor {
 
         // Registers hotkey for the app
         let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
-        hotkey_manager.register(START_KEY).expect("Failed to register hotkey");
+        hotkey_manager.register(*START_KEY).expect("Failed to register hotkey");
 
         (
             Self {
