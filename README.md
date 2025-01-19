@@ -1,8 +1,11 @@
+[![Test project](https://github.com/Benji377/SlightlyBetterText/actions/workflows/tests.yml/badge.svg)](https://github.com/Benji377/SlightlyBetterText/actions/workflows/tests.yml)
+![GitHub downloads](https://img.shields.io/github/downloads/Benji377/SlightlyBetterText/total?label=Downloads)
+
 # :pencil: SBT - SlightlyBetterText
 > **Work in Progress!**
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Benji377/SlightlyBetterText/refs/heads/main/src/assets/images/logo.svg" alt="Logo" style="width: 100%; max-width: 400px; vertical-align: middle;">
+  <img src="https://raw.githubusercontent.com/Benji377/SlightlyBetterText/refs/heads/main/src/assets/images/logo.svg" alt="Logo" style="width: 45%; max-width: 400px; vertical-align: middle;">
 </div>
 
 ---
