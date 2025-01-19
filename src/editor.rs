@@ -85,7 +85,7 @@ impl Editor {
                     load_file(document_dir_pathbuf),
                     Message::FileOpened,
                 ),
-                iced::window::get_latest().map(|id| Message::InitWindow(id)),
+                iced::window::get_latest().map(Message::InitWindow),
                 widget::focus_next(),
 
             ]),

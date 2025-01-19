@@ -2,10 +2,12 @@ use global_hotkey::hotkey::{Code, HotKey, Modifiers};
 use iced::Font;
 use log::LevelFilter;
 use simplelog::TermLogger;
-use editor::editor::Editor;
 use std::sync::LazyLock;
 
 mod editor;
+use editor::Editor;
+//mod settings;
+//use settings::Settings;
 
 static APP_NAME: &str = "SlightlyBetterText";
 static LOGO: &[u8] = include_bytes!("assets/logo.ico");
@@ -32,9 +34,11 @@ pub fn main() -> iced::Result {
         simplelog::ColorChoice::Auto,
     ).expect("Failed to initialize logger");
 
-    let mut window_settings = iced::window::Settings::default();
-    window_settings.visible = true;
-    window_settings.icon = Some(iced::window::icon::from_file_data(LOGO, None).expect("Failed to load icon"));
+    let window_settings = iced::window::Settings {
+        visible: true,
+        icon: Some(iced::window::icon::from_file_data(LOGO, None).expect("Failed to load icon")),
+        ..iced::window::Settings::default()
+    };
 
     iced::application(APP_NAME, Editor::update, Editor::view)
         .subscription(Editor::subscription)
