@@ -43,15 +43,15 @@ jobs:
               with:
                   name: ${{ matrix.platform }}-release-artifacts
                   path: |
-                      ${{ matrix.platform == 'macos-latest' && 'target/release/slightlybettertext.app' || '' }}
-                      ${{ matrix.platform == 'macos-latest' && 'target/release/slightlybettertext_*_aarch64.dmg' || '' }}
-                      ${{ matrix.platform == 'macos-13' && 'target/release/slightlybettertext.app' || '' }}
-                      ${{ matrix.platform == 'macos-13' && 'target/release/slightlybettertext_*_x64.dmg' || '' }}
+                      ${{ matrix.platform == 'macos-latest' && 'target/release/SlightlyBetterText.app' || '' }}
+                      ${{ matrix.platform == 'macos-latest' && 'target/release/SlightlyBetterText_*_aarch64.dmg' || '' }}
+                      ${{ matrix.platform == 'macos-13' && 'target/release/SlightlyBetterText.app' || '' }}
+                      ${{ matrix.platform == 'macos-13' && 'target/release/SlightlyBetterText_*_x64.dmg' || '' }}
                       ${{ matrix.platform == 'ubuntu-latest' && 'target/release/PKGBUILD' || '' }}
-                      ${{ matrix.platform == 'ubuntu-latest' && 'target/release/slightlybettertext_*_amd64.deb' || '' }}
-                      ${{ matrix.platform == 'ubuntu-latest' && 'target/release/slightlybettertext_*_x86_64.AppImage' || '' }}
-                      ${{ matrix.platform == 'windows-latest' && 'target/release/slightlybettertext_*_x64_en-US.msi' || '' }}
-                      ${{ matrix.platform == 'windows-latest' && 'target/release/slightlybettertext_*_x64-setup.exe' || '' }}
+                      ${{ matrix.platform == 'ubuntu-latest' && 'target/release/SlightlyBetterText_*_amd64.deb' || '' }}
+                      ${{ matrix.platform == 'ubuntu-latest' && 'target/release/SlightlyBetterText_*_x86_64.AppImage' || '' }}
+                      ${{ matrix.platform == 'windows-latest' && 'target/release/SlightlyBetterText_*_x64_en-US.msi' || '' }}
+                      ${{ matrix.platform == 'windows-latest' && 'target/release/SlightlyBetterText_*_x64-setup.exe' || '' }}
 
     # Upload to GitHub release job
     upload_to_release:
@@ -70,24 +70,24 @@ jobs:
               with:
                   subject-path: |
                       artifacts/PKGBUILD
-                      artifacts/slightlybettertext_*_aarch64.dmg
-                      artifacts/slightlybettertext_*_x64.dmg
-                      artifacts/slightlybettertext_*_amd64.deb
-                      artifacts/slightlybettertext_*_x86_64.AppImage
-                      artifacts/slightlybettertext_*_x64_en-US.msi
-                      artifacts/slightlybettertext_*_x64-setup.exe
+                      artifacts/SlightlyBetterText_*_aarch64.dmg
+                      artifacts/SlightlyBetterText_*_x64.dmg
+                      artifacts/SlightlyBetterText_*_amd64.deb
+                      artifacts/SlightlyBetterText_*_x86_64.AppImage
+                      artifacts/SlightlyBetterText_*_x64_en-US.msi
+                      artifacts/SlightlyBetterText_*_x64-setup.exe
 
             - name: Release to GitHub
               uses: softprops/action-gh-release@v2
               with:
                   draft: true
                   generate_release_notes: true
-                  tag_name: slightlybettertext v${{ env.VERSION }}
+                  tag_name: SlightlyBetterText v${{ env.VERSION }}
                   files: |
                       artifacts/PKGBUILD
-                      artifacts/slightlybettertext_*_aarch64.dmg
-                      artifacts/slightlybettertext_*_x64.dmg
-                      artifacts/slightlybettertext_*_amd64.deb
-                      artifacts/slightlybettertext_*_x86_64.AppImage
-                      artifacts/slightlybettertext_*_x64_en-US.msi
-                      artifacts/slightlybettertext_*_x64-setup.exe
+                      artifacts/SlightlyBetterText_*_aarch64.dmg
+                      artifacts/SlightlyBetterText_*_x64.dmg
+                      artifacts/SlightlyBetterText_*_amd64.deb
+                      artifacts/SlightlyBetterText_*_x86_64.AppImage
+                      artifacts/SlightlyBetterText_*_x64_en-US.msi
+                      artifacts/SlightlyBetterText_*_x64-setup.exe
