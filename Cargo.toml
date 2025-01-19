@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 directories = "6.0.0"
 global-hotkey = "0.6.3"
-iced = { version = "0.13.1", features=["highlighter", "tokio", "debug"] }
+iced = { version = "0.13.1", features=["highlighter", "tokio", "debug", "image"] }
 log = "0.4.25"
 rfd = "0.15.2"
 simplelog = "0.12.2"
