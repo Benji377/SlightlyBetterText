@@ -1,6 +1,10 @@
 [package]
 name = "slightlybettertext"
 version = "0.1.0"
+description = "A simple minimal text-editor"
+authors = ["Demetz Benjamin"]
+license-file = "LICENSE"
+readme = "README.md"
 edition = "2021"
 
 [dependencies]
@@ -9,5 +13,24 @@ global-hotkey = "0.6.3"
 iced = { version = "0.13.1", features=["highlighter", "tokio", "debug", "image"] }
 log = "0.4.25"
 rfd = "0.15.2"
+serde = "1.0.217"
+serde_json = "1.0.136"
 simplelog = "0.12.2"
 tokio = { version = "1.43.0", features = ["fs"] }
+
+[profile.release]
+opt-level = 3     # Focus on performance
+lto = true
+codegen-units = 1
+strip = true      # Removed debugging symbols
+#panic = "abort" # Removes exception tree
+
+[package.metadata.packager]
+product-name = "SlightlyBetterText"
+identifier = "sbt.slightlybettertext.app"
+category = "Utility"
+homepage = "https://github.com/Benji377/SlightlyBetterText"
+icons = ["src/assets/images/logo.svg"]
+licenseFile = "LICENSE"
+formats = ["all"]
+before-packaging-command = "cargo build --release --no-default-features"

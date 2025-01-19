@@ -1,3 +1,6 @@
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use global_hotkey::hotkey::{Code, HotKey, Modifiers};
 use iced::Font;
 use log::LevelFilter;
@@ -5,12 +8,13 @@ use simplelog::TermLogger;
 use std::sync::LazyLock;
 
 mod editor;
+mod settings;
 use editor::Editor;
-//mod settings;
-//use settings::Settings;
+
 
 static APP_NAME: &str = "SlightlyBetterText";
-static LOGO: &[u8] = include_bytes!("assets/logo.ico");
+static SETTINGS_FILE_NAME: &str = "settings.json";
+static LOGO: &[u8] = include_bytes!("assets/images/logo.ico");
 static START_KEY: LazyLock<HotKey> = LazyLock::new(|| HotKey { id: 19012025, key: Code::Space, mods: Modifiers::CONTROL | Modifiers::ALT });
 
 #[cfg(debug_assertions)]

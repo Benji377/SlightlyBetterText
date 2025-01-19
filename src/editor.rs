@@ -2,20 +2,20 @@ use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
 use iced::futures::SinkExt;
 use iced::futures::Stream;
 use iced::stream;
-use iced::{highlighter, Subscription};
+use iced::Subscription;
 use iced::keyboard;
 use iced::window;
 use iced::widget::{
-    self, button, column, container, horizontal_space, pick_list, row, text,
-    text_editor, toggler, tooltip,
+    self, button, column, container, horizontal_space, row, text,
+    text_editor, tooltip,
 };
 use iced::{Center, Element, Fill, Font, Task, Theme};
 use std::ffi;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use directories::UserDirs;
 
+use crate::settings;
 use crate:: START_KEY;
 
 #[derive(Debug, Clone)]
@@ -29,19 +29,16 @@ pub struct Editor {
     window_id: Option<iced::window::Id>,
     file: Option<PathBuf>,
     content: text_editor::Content,
-    theme: highlighter::Theme,
-    word_wrap: bool,
     is_loading: bool,
     is_dirty: bool,
     is_visible: bool,
     _key_manager: GlobalHotKeyManager,
+    _settings: settings::Settings,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
     ActionPerformed(text_editor::Action),
-    ThemeSelected(highlighter::Theme),
-    WordWrapToggled(bool),
     NewFile,
     OpenFile,
     FileOpened(Result<(PathBuf, Arc<String>), Error>),
@@ -53,36 +50,27 @@ pub enum Message {
 
 impl Editor {
     pub fn new() -> (Self, Task<Message>) {
-        let user_dirs = UserDirs::new().expect("Failed to get user directories");
-        let document_dir_pathbuf = user_dirs
-            .document_dir()
-            .map(|dir| dir.to_owned().join("sbt_notes.txt"))
-            .expect("Failed to get document directory");
-
-        // If the file doesn't exist, create it
-        if !document_dir_pathbuf.exists() {
-            let _ = std::fs::File::create(&document_dir_pathbuf);
-        }
-
         // Registers hotkey for the app
         let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
         hotkey_manager.register(*START_KEY).expect("Failed to register hotkey");
+
+        let app_settings = settings::Settings::new().expect("Failed to load settings");
+        let default_file = app_settings.startup_file_path.clone();
 
         (
             Self {
                 window_id: None,
                 file: None,
                 content: text_editor::Content::new(),
-                theme: highlighter::Theme::SolarizedDark,
-                word_wrap: true,
                 is_loading: true,
                 is_dirty: false,
                 is_visible: true,
                 _key_manager: hotkey_manager,
+                _settings: app_settings,
             },
             Task::batch([
                 Task::perform(
-                    load_file(document_dir_pathbuf),
+                    load_file(default_file),
                     Message::FileOpened,
                 ),
                 iced::window::get_latest().map(Message::InitWindow),
@@ -98,16 +86,6 @@ impl Editor {
                 self.is_dirty = self.is_dirty || action.is_edit();
 
                 self.content.perform(action);
-
-                Task::none()
-            }
-            Message::ThemeSelected(theme) => {
-                self.theme = theme;
-
-                Task::none()
-            }
-            Message::WordWrapToggled(word_wrap) => {
-                self.word_wrap = word_wrap;
 
                 Task::none()
             }
@@ -199,17 +177,7 @@ impl Editor {
                 "Save file",
                 self.is_dirty.then_some(Message::SaveFile)
             ),
-            horizontal_space(),
-            toggler(self.word_wrap)
-                .label("Word Wrap")
-                .on_toggle(Message::WordWrapToggled),
-            pick_list(
-                highlighter::Theme::ALL,
-                Some(self.theme),
-                Message::ThemeSelected
-            )
-            .text_size(14)
-            .padding([5, 10])
+            horizontal_space()
         ]
         .spacing(10)
         .align_y(Center);
@@ -240,7 +208,7 @@ impl Editor {
             text_editor(&self.content)
                 .height(Fill)
                 .on_action(Message::ActionPerformed)
-                .wrapping(if self.word_wrap {
+                .wrapping(if self._settings.word_wrap {
                     text::Wrapping::Word
                 } else {
                     text::Wrapping::None
@@ -250,16 +218,33 @@ impl Editor {
                         .as_deref()
                         .and_then(Path::extension)
                         .and_then(ffi::OsStr::to_str)
-                        .unwrap_or("rs"),
-                    self.theme,
+                        .unwrap_or("txt"),
+                    self._settings.get_theme(),
                 )
                 .key_binding(|key_press| {
                     match key_press.key.as_ref() {
                         keyboard::Key::Character("s")
                             if key_press.modifiers.command() =>
                         {
+                            log::info!("Save file");
                             Some(text_editor::Binding::Custom(
                                 Message::SaveFile,
+                            ))
+                        }
+                        keyboard::Key::Character("o")
+                            if key_press.modifiers.command() =>
+                        {
+                            log::info!("Open file");
+                            Some(text_editor::Binding::Custom(
+                                Message::OpenFile,
+                            ))
+                        }
+                        keyboard::Key::Character("n")
+                            if key_press.modifiers.command() =>
+                        {
+                            log::info!("New file");
+                            Some(text_editor::Binding::Custom(
+                                Message::NewFile,
                             ))
                         }
                         _ => text_editor::Binding::from_key_press(key_press),
@@ -273,7 +258,7 @@ impl Editor {
     }
 
     pub fn theme(&self) -> Theme {
-        if self.theme.is_dark() {
+        if self._settings.get_theme().is_dark() {
             Theme::Dark
         } else {
             Theme::Light
