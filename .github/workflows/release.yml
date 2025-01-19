@@ -13,8 +13,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                platform:
-                    [macos-latest, macos-13, ubuntu-latest, windows-latest]
+                platform: [macos-latest, macos-13, ubuntu-latest, windows-latest]
         runs-on: ${{ matrix.platform }}
         steps:
             - name: Checkout repository
@@ -43,7 +42,6 @@ jobs:
               with:
                   name: ${{ matrix.platform }}-release-artifacts
                   path: |
-                      ${{ matrix.platform == 'macos-latest' && 'target/release/SlightlyBetterText.app' || '' }}
                       ${{ matrix.platform == 'macos-latest' && 'target/release/SlightlyBetterText_*_aarch64.dmg' || '' }}
                       ${{ matrix.platform == 'macos-13' && 'target/release/SlightlyBetterText_*_x64.dmg' || '' }}
                       ${{ matrix.platform == 'ubuntu-latest' && 'target/release/PKGBUILD' || '' }}
@@ -69,7 +67,6 @@ jobs:
               with:
                   subject-path: |
                       artifacts/PKGBUILD
-                      artifacts/SlightlyBetterText.app
                       artifacts/SlightlyBetterText_*_aarch64.dmg
                       artifacts/SlightlyBetterText_*_x64.dmg
                       artifacts/slightlybettertext_*_amd64.deb
@@ -85,7 +82,6 @@ jobs:
                   tag_name: SlightlyBetterText v${{ env.VERSION }}
                   files: |
                       artifacts/PKGBUILD
-                      artifacts/SlightlyBetterText.app
                       artifacts/SlightlyBetterText_*_aarch64.dmg
                       artifacts/SlightlyBetterText_*_x64.dmg
                       artifacts/slightlybettertext_*_amd64.deb
