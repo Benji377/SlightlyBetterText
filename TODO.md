@@ -5,11 +5,6 @@
 
 Allow the user to change the hotkey that opens the app
 
-## Add tests
-> Low priority
-
-Add a test framework to track possible issues
-
 ## Reduce memory footprint
 > Low priority
 
