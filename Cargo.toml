@@ -1,6 +1,6 @@
 [package]
 name = "slightlybettertext"
-version = "0.1.0"
+version = "1.0.0"
 description = "A simple minimal text-editor"
 authors = ["Demetz Benjamin"]
 license-file = "LICENSE"
