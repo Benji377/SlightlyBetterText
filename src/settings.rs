@@ -1,3 +1,7 @@
+//! The settings module controls the settings of the application. It is responsible for loading and saving the settings to a file.
+//! The settings are stored in a JSON file in the user's config directory. The settings are loaded when the application starts.
+//! Since you can't interact with the settings through the UI, you can change the settings by editing the JSON file directly.
+
 use std::fs::{self, File};
 use std::path::PathBuf;
 use iced::highlighter;
@@ -7,18 +11,22 @@ use std::io::Read;
 
 use crate::SETTINGS_FILE_NAME;
 
-// TODO: Add a way to change the hotkey to open the app
-
+/// The settings struct holds the settings of the application. It is serialized and deserialized to and from a JSON file.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
+    /// The file path is not serialized to the settings file. It is set when the settings are loaded.
     #[serde(skip)]
     file_path: Option<PathBuf>,
+    /// The startup file path is the path of the file that is opened when the application starts.
     pub startup_file_path: PathBuf,
+    /// The theme is the color scheme of the application.
     theme: String,
+    /// Word wrap is a boolean that determines if the text should wrap at the end of the line.
     pub word_wrap: bool,
 }
 
 impl Default for Settings {
+    /// The default settings are used when the settings file does not exist.
     fn default() -> Self {
         let user_dirs = UserDirs::new().expect("Failed to get user directories");
         let document_dir_pathbuf = user_dirs
@@ -42,6 +50,7 @@ impl Default for Settings {
 }
 
 impl Settings {
+    /// Set the path of the settings file. This is called when the settings are loaded.
     fn set_path(&mut self) -> Result<(), String> {
         #[cfg(not(target_os = "windows"))]
         let project_dirs = ProjectDirs::from("sbt", "slightlybettertext", "slightlybettertext").ok_or("Could not find project directories".to_owned()).unwrap();
@@ -53,6 +62,7 @@ impl Settings {
         Ok(())
     }
 
+    /// Save the settings to the settings file. This is called when we just created the settings file.
     fn save(&self) -> Result<(), String> {
         let file_path = self.file_path.as_ref().ok_or("No file path set".to_owned()).unwrap();
         
@@ -65,6 +75,7 @@ impl Settings {
         serde_json::to_writer_pretty(file, self).map_err(|error| format!("Failed to serialize settings: {error}"))
     }
 
+    /// Load the settings from the settings file. This is called when the application starts.
     pub fn new() -> Result<Self, String> {
         let mut tmp = Settings::default();
         tmp.set_path().unwrap();
@@ -88,6 +99,8 @@ impl Settings {
 
         Ok(settings_from_str)
     }
+
+    /// A helper function to convert the iced theme to and from a string.
     pub fn get_theme(&self) -> highlighter::Theme {
         match self.theme.to_lowercase().as_str() {
             "eighties" => highlighter::Theme::Base16Eighties,

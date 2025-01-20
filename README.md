@@ -61,6 +61,7 @@ You can customize SBT by editing the `settings.json` file located in the applica
 ## :books: Additional Notes
 - **Development Environment**: SBT is primarily developed on **Windows**, with Linux and macOS support being theoretical for now.
 - For a roadmap and planned features, see the [TODOs](TODO.md).
+- You can generate the docs and open them in a browser with `cargo doc --no-deps --open`
 
 ---
 

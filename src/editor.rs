@@ -1,3 +1,6 @@
+//! The editor is an iced application. This module controls the entire logic
+//! of the application. It includes both the iced frontend and the logic to manage it.
+
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
 use iced::futures::SinkExt;
 use iced::futures::Stream;
@@ -18,42 +21,65 @@ use std::sync::Arc;
 use crate::settings;
 use crate:: START_KEY;
 
+/// An error that can occur while interacting with the editor
 #[derive(Debug, Clone)]
 pub enum Error {
+    /// The dialog was closed
     DialogClosed,
+    /// An I/O error occurred
     #[allow(dead_code)]
     IoError(io::ErrorKind),
 }
 
+/// The editor of the application
 pub struct Editor {
+    /// The Iced window ID, needed to execute tasks
     window_id: Option<iced::window::Id>,
+    /// The file currently being edited
     file: Option<PathBuf>,
+    /// The content of the editor
     content: text_editor::Content,
+    /// Whether a file is currently being loaded
     is_loading: bool,
+    /// Whether the file has been modified
     is_dirty: bool,
+    /// Whether the window is visible
     is_visible: bool,
+    /// The global hotkey manager
     _key_manager: GlobalHotKeyManager,
+    /// The application settings
     _settings: settings::Settings,
 }
 
+/// The messages that can be sent to the editor
 #[derive(Debug, Clone)]
 pub enum Message {
+    /// An action was performed in the editor
     ActionPerformed(text_editor::Action),
+    /// Create a new file
     NewFile,
+    /// Open a file
     OpenFile,
+    /// A file was opened
     FileOpened(Result<(PathBuf, Arc<String>), Error>),
+    /// Save the file
     SaveFile,
+    /// A file was saved
     FileSaved(Result<PathBuf, Error>),
+    /// A hotkey was pressed
     HotkeyPressed(GlobalHotKeyEvent),
+    /// Initialize the window and set the window ID (only called once)
     InitWindow(Option<iced::window::Id>),
 }
 
 impl Editor {
+    /// Create a new editor instance. WE regsiter the global hotkey manager, the settings module and the window ID here.
     pub fn new() -> (Self, Task<Message>) {
         // Registers hotkey for the app
         let hotkey_manager = GlobalHotKeyManager::new().expect("Failed to create hotkey manager");
         hotkey_manager.register(*START_KEY).expect("Failed to register hotkey");
 
+        // Load settings and get the default file path
         let app_settings = settings::Settings::new().expect("Failed to load settings");
         let default_file = app_settings.startup_file_path.clone();
 
@@ -69,10 +95,12 @@ impl Editor {
                 _settings: app_settings,
             },
             Task::batch([
+                // Load the default file
                 Task::perform(
                     load_file(default_file),
                     Message::FileOpened,
                 ),
+                // Get the window ID
                 iced::window::get_latest().map(Message::InitWindow),
                 widget::focus_next(),
 
@@ -80,6 +108,7 @@ impl Editor {
         )
     }
 
+    /// Internal iced update cycle
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::ActionPerformed(action) => {
@@ -164,6 +193,7 @@ impl Editor {
         }
     }
 
+    /// Internal iced view cycle
     pub fn view(&self) -> Element<Message> {
         let controls = row![
             action(new_icon(), "New file", Some(Message::NewFile)),
@@ -257,6 +287,7 @@ impl Editor {
         .into()
     }
 
+    /// Internal iced theme selection
     pub fn theme(&self) -> Theme {
         if self._settings.get_theme().is_dark() {
             Theme::Dark
@@ -265,11 +296,13 @@ impl Editor {
         }
     }
 
+    /// Internal iced subscription cycle
     pub fn subscription(&self) -> iced::Subscription<Message> {
+        // Subscribe to hotkey events
         Subscription::run(hotkey_worker)
     }
 }
-
+/// Opens a file dialog to select a file to open
 async fn open_file() -> Result<(PathBuf, Arc<String>), Error> {
     let picked_file = rfd::AsyncFileDialog::new()
         .set_title("Open a text file...")
@@ -280,6 +313,7 @@ async fn open_file() -> Result<(PathBuf, Arc<String>), Error> {
     load_file(picked_file).await
 }
 
+/// Asynchronously loads a file from the file system
 async fn load_file(
     path: impl Into<PathBuf>,
 ) -> Result<(PathBuf, Arc<String>), Error> {
@@ -293,6 +327,7 @@ async fn load_file(
     Ok((path, contents))
 }
 
+/// Asynchronously saves a file to the file system
 async fn save_file(
     path: Option<PathBuf>,
     contents: String,
@@ -316,6 +351,7 @@ async fn save_file(
     Ok(path)
 }
 
+/// Creates an action button
 fn action<'a, Message: Clone + 'a>(
     content: impl Into<Element<'a, Message>>,
     label: &'a str,
@@ -336,24 +372,29 @@ fn action<'a, Message: Clone + 'a>(
     }
 }
 
+/// Icon for the "new" action
 fn new_icon<'a, Message>() -> Element<'a, Message> {
     icon('\u{0e800}')
 }
 
+/// Icon for the "save" action
 fn save_icon<'a, Message>() -> Element<'a, Message> {
     icon('\u{0e801}')
 }
 
+/// Icon for the "open" action
 fn open_icon<'a, Message>() -> Element<'a, Message> {
     icon('\u{0f115}')
 }
 
+/// Creates an icon element
 fn icon<'a, Message>(codepoint: char) -> Element<'a, Message> {
     const ICON_FONT: Font = Font::with_name("editor-icons");
 
     text(codepoint).font(ICON_FONT).into()
 }
 
+/// Worker that listens for global hotkey events
 fn hotkey_worker() -> impl Stream<Item = Message> {
     stream::channel(100, |mut sender| async move {
         // Create channel

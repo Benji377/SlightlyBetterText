@@ -1,9 +1,9 @@
 # TODO
 
-## Documentation
+## Settings addition
 > Medium priority
 
-Add Rust docs comments to cover the entire project
+Allow the user to change the hotkey that opens the app
 
 ## Add tests
 > Low priority
